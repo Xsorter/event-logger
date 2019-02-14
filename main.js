@@ -4,6 +4,11 @@
     eventsArray: []
   };
 
+  
+  window.onunload = () => {
+    localStorage.setItem('closed', 'true');
+  } 
+
   data.block.onclick = (event) => {
     let target = event.target;
     if(target === data.block){
