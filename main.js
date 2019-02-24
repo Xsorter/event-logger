@@ -1,6 +1,7 @@
 (function(){
 
   window.onbeforeunload = (e)=>{
+    databaseSet();
     console.log('%conbeforeunload fired', 'color: green; font-size: 18px');
     if(window.event.returnValue = 'Do you really want to close the window?'){
       console.log('%cuser is trying to leave', 'color: #feb606; font-size: 18px');
@@ -16,6 +17,7 @@
     block : document.querySelector('#video'),
     input: document.querySelector('#input'),
     eventTypeString: 'click mouseover play pause seeked seeking volumechange',
+    database: firebase.database(),
     ticker: -1
   };
 
@@ -24,6 +26,7 @@
     userEvents: [],
     outOfViewPortEvents: []
   }
+
 
   init();
 
@@ -39,8 +42,8 @@
 
   function onInputFocus(e){
     statisticData['inputFocusEvent'] = {
-      videoTotalDuration: data.block.duration,
-      inputFocusTime: data.block.currentTime,
+      videoTotalDuration: data.block.duration.toFixed(2),
+      inputFocusTime: data.block.currentTime.toFixed(2),
       focusEventTimeStamp: timestampRound(e.timeStamp)
     }
   }
@@ -74,8 +77,13 @@
         visibility.isVisible = false;
       }
       statisticData.outOfViewPortEvents.push(visibility);
-      console.log(statisticData)
+
+      console.log(statisticData);
     }
+  }
+
+  function databaseSet(){
+    data.database.ref('events/' + statisticData.uuid).set(statisticData);
   }
 
   function timestampRound(t){
