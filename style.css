@@ -1,7 +1,14 @@
 #block{
-  background: #81d405;
-  width: 200px;
-  height: 200px;
   margin: 0 auto;
   margin-top: 100px;
+  max-width: 640px;
+  z-index: 2;
+  position: relative;
+}
+
+p{
+  height: 800px;
+  font-size: 64px;
+  text-align: center;
+  font-family: 'Arial', sans-serif;
 }
