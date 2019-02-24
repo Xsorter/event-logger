@@ -1,8 +1,5 @@
 (function(){
 
-  //TODO user unique id (session id);
-  //TODO event from focus first input + duration video time
-
   window.onbeforeunload = (e)=>{
     console.log('%conbeforeunload fired', 'color: green; font-size: 18px');
     if(window.event.returnValue = 'Do you really want to close the window?'){
@@ -17,6 +14,7 @@
 
   let data = {
     block : document.querySelector('#video'),
+    input: document.querySelector('#input'),
     eventTypeString: 'click mouseover play pause seeked seeking volumechange',
     ticker: -1
   };
@@ -32,12 +30,20 @@
   function init(){
     addListenerMulti(data.block, data.eventTypeString, (e) => {eventHandler(e)});
     window.addEventListener('scroll', (e)=>{ pageScroll(e) }); 
+    window.addEventListener('click', (e) => { onInputFocus(e) });
   }
 
   function addListenerMulti(el, s, fn) {
     s.split(' ').forEach(e => el.addEventListener(e, fn, false));
   }
 
+  function onInputFocus(e){
+    statisticData['inputFocusEvent'] = {
+      videoTotalDuration: data.block.duration,
+      inputFocusTime: data.block.currentTime,
+      focusEventTimeStamp: timestampRound(e.timeStamp)
+    }
+  }
   
 
   function checkIsOutOfViewport(el) {
