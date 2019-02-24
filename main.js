@@ -18,13 +18,14 @@
     input: document.querySelector('#input'),
     eventTypeString: 'click mouseover play pause seeked seeking volumechange',
     database: firebase.database(),
-    ticker: -1
+    ticker: -1,
   };
 
   let statisticData = {
     uuid: userIdCheck(),
     userEvents: [],
-    outOfViewPortEvents: []
+    outOfViewPortEvents: [],
+    videoName: videoNameExtract(data.block)
   }
 
 
@@ -48,6 +49,10 @@
     }
   }
   
+  function videoNameExtract(video){
+    let videoName = video.src.split('/')[(video.src.split('/').length) - 1];
+    return videoName.substring(0, videoName.indexOf('.'));
+  }
 
   function checkIsOutOfViewport(el) {
     let box = el.getBoundingClientRect();
@@ -77,13 +82,12 @@
         visibility.isVisible = false;
       }
       statisticData.outOfViewPortEvents.push(visibility);
-
       console.log(statisticData);
     }
   }
 
-  function databaseSet(){
-    data.database.ref('events/' + statisticData.uuid).set(statisticData);
+  function databaseSet(){ 
+    data.database.ref('events/' + statisticData.videoName).push(statisticData);
   }
 
   function timestampRound(t){
