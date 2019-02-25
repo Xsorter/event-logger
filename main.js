@@ -24,7 +24,6 @@
   let statisticData = {
     uuid: userIdCheck(),
     userEvents: [],
-    outOfViewPortEvents: [],
     videoName: videoNameExtract(data.block)
   }
 
@@ -34,7 +33,7 @@
   function init(){
     addListenerMulti(data.block, data.eventTypeString, (e) => {eventHandler(e)});
     window.addEventListener('scroll', (e)=>{ pageScroll(e) }); 
-    window.addEventListener('click', (e) => { onInputFocus(e) });
+    data.input.addEventListener('focus', (e) => { onInputFocus(e) });
   }
 
   function addListenerMulti(el, s, fn) {
@@ -42,11 +41,14 @@
   }
 
   function onInputFocus(e){
-    statisticData['inputFocusEvent'] = {
+    let event = {
+      type: 'focusOnInput',
+      timestamp: timestampRound(e.timeStamp),
       videoTotalDuration: data.block.duration.toFixed(2),
       inputFocusTime: data.block.currentTime.toFixed(2),
-      focusEventTimeStamp: timestampRound(e.timeStamp)
     }
+    deltaCalculation(event);
+    statisticData.userEvents.push(event);
   }
   
   function videoNameExtract(video){
@@ -62,9 +64,10 @@
   }
 
   function pageScroll(e){
-    let visibility = {
-      isVisible: true,
-      timeStamp: timestampRound(e.timeStamp)
+    let event = {
+      type: e.type,
+      timestamp: timestampRound(e.timeStamp),
+      videoIsVisible: true,
     }
 
     if(data.ticker !== -1){
@@ -73,15 +76,15 @@
 
     data.ticker = window.setTimeout(scrollFinished, 250);
 
+    deltaCalculation(event);
+
     function scrollFinished(){
       if(checkIsOutOfViewport(data.block)){
-        console.log('is visible, timestamp: '+ timestampRound(e.timeStamp));
-        visibility.isVisible = true;
+        event.videoIsVisible = true;
       }else{
-        console.log('is not visible, timestamp: '+ timestampRound(e.timeStamp));
-        visibility.isVisible = false;
+        event.videoIsVisible = false;
       }
-      statisticData.outOfViewPortEvents.push(visibility);
+      statisticData.userEvents.push(event);
       console.log(statisticData);
     }
   }
@@ -94,6 +97,14 @@
     return parseFloat((t / 1000).toFixed(2))
   }
 
+  function deltaCalculation(eventObj){
+    let deltaBase = statisticData.userEvents[statisticData.userEvents.length - 1];
+    if(deltaBase !== undefined){
+      let delta = parseFloat((eventObj.timestamp - deltaBase.timestamp).toFixed(2));
+      eventObj["delta"] = delta; 
+    }
+  }
+
   function eventHandler(event){
     let eventData = {
       type: event.type,
@@ -103,20 +114,16 @@
       delta: 0,
     }
 
-    if(event.type === 'volumechange'){
-      eventData['volume'] = data.block.volume;
+    deltaCalculation(eventData);
+
+    if(event.type === 'volumechange' && data.block.muted){
       eventData['muted'] = data.block.muted;
+      statisticData.userEvents.push(eventData);
+    }else if (event.type !== 'volumechange'){
+      statisticData.userEvents.push(eventData);
     }
-
-    let deltaBase = statisticData.userEvents[statisticData.userEvents.length - 1];
-    if(deltaBase !== undefined){
-      let delta = parseFloat((eventData.timestamp - deltaBase.timestamp).toFixed(2));
-      eventData["delta"] = delta; 
-    }
-    
-    statisticData.userEvents.push(eventData);
     console.log(statisticData.userEvents); 
-
+    
   }
 
   function uuidv4() {
